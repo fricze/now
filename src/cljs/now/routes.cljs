@@ -14,15 +14,18 @@
        (secretary/dispatch! (.-token event))))
     (.setEnabled true)))
 
+(defn goto-route [route-name]
+  (re-frame/dispatch [:set-active-panel route-name]))
+
 (defn app-routes []
   (secretary/set-config! :prefix "#")
   ;; --------------------
   ;; define routes here
   (defroute "/" []
-    (re-frame/dispatch [:set-active-panel :home-panel]))
+    (goto-route :now))
 
   (defroute "/about" []
-    (re-frame/dispatch [:set-active-panel :about-panel]))
+    (goto-route :later))
 
 
   ;; --------------------

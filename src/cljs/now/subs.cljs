@@ -11,3 +11,8 @@
  :active-panel
  (fn [db _]
    (reaction (:active-panel @db))))
+
+(re-frame/register-sub
+ :add-new-thing
+ (fn [db _]
+   (reaction (:new-thing @db))))

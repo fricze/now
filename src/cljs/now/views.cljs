@@ -1,5 +1,6 @@
 (ns now.views
-  (:require [re-frame.core :as re-frame]))
+  (:require [re-frame.core :as re-frame]
+            [reagent.core :as r]))
 
 (enable-console-print!)
 
@@ -19,18 +20,34 @@
    :padding-right 5
    :margin-right 5})
 
+(defn val-from-e-target [e]
+  (.-value (.-target e)))
+
 ;; --------------------
 (defn do-it-component []
-  (fn []
-    [:div
-     [:textarea]]))
+  (let [show (re-frame/subscribe [:add-new-thing])
+        content (r/atom "")]
+    (fn []
+      [:div
+       [:h1 "area"]
+       (when @show [:textarea {:name "chuj"
+                               :on-change #(reset! content (val-from-e-target %))
+                               :value @content
+                               :rows 10
+                               :col 40}])])))
 
 (defn now-component []
-  (let [name (re-frame/subscribe [:name])]
+  (let [name (re-frame/subscribe [:name])
+        ]
     (fn []
-      [:ul {:style menu-style}
-       [:li {:style menu-elm-style} "create it for now!"]
-       [:li {:style menu-elm-style} "check everything!"]])))
+      [:div
+       [:ul {:style menu-style}
+        [:li {:style menu-elm-style
+              :on-click (fn []
+                          (re-frame/dispatch [:add-new-thing]))}
+         "create it for now!"]
+        [:li {:style menu-elm-style} "check everything!"]]
+       [do-it-component]])))
 
 (defn later-component []
   (fn []
@@ -38,38 +55,36 @@
      [:li {:style menu-elm-style} "later"]
      [:li {:style menu-elm-style} "probably not now"]]))
 
-
 ;; --------------------
 (defmulti panels identity)
 (defmethod panels :now [] [now-component])
 (defmethod panels :later [] [later-component])
-(defmethod panels :default [] [:div])
+(defmethod panels :default [] [:div (str (name :none))])
 
-(def title-style {:style
-                  {:display :inline-block
-                   :font-size 24
-                   :line-height 1.5
-                   :margin-top 0 :margin-bottom 0
-                   :margin-right 10
-                   :padding-top 0 :padding-bottom 0}})
+(def title-style {:display :inline-block
+                  :font-size 24
+                  :line-height 1.5
+                  :margin-top 0 :margin-bottom 0
+                  :margin-right 10
+                  :padding-top 0 :padding-bottom 0})
+
+(def main-panel-style {:font-family "sans-serif"
+                       :color :#333
+                       :width "70vw"
+                       :margin-left :auto
+                       :margin-right :auto
+                       :margin-top "3vh"})
 
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])]
     (fn []
       [:div
-       {:style
-        {:font-family "sans-serif"
-         :color :#333
-         :width "70vw"
-         :margin-left :auto
-         :margin-right :auto
-         :margin-top "3vh"}}
-
+       {:style main-panel-style}
        [:h1
-        title-style
+        {:style title-style}
         "do it now " [:span {:style {:color "#990000"}} "!"]]
        [:h2
-        title-style
+        {:style title-style}
         "or later " [:span {:style {:color "#990000"}} "?"]]
 
        (panels @active-panel)])))
@@ -83,6 +98,9 @@
 
 (mouse-shortcuts)
 
-;; document.body.addEventListener('keydown', function (e) {
-;;     alert('hello world');
-;; });
+
+(defn my-memoize [fnc]
+  (fn [& args] (let [memoized (get args some-map false)]
+                 (if memoized
+                   memoized
+                   (apply fnc args)))))

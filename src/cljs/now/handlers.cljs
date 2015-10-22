@@ -11,3 +11,9 @@
  :set-active-panel
  (fn [db [_ active-panel]]
    (assoc db :active-panel active-panel)))
+
+(re-frame/register-handler
+ :add-new-thing
+ (fn [db _]
+   (let [new-thing (not (:new-thing db))]
+       (assoc db :new-thing new-thing))))

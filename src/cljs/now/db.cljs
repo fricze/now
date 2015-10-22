@@ -5,4 +5,6 @@
 
    :active-panel :none
 
+   :new-thing false
+
    :doings []})

@@ -10,9 +10,9 @@
   :plugins [[lein-cljsbuild "1.0.6"]
             [lein-figwheel "0.3.3" :exclusions [cider/cider-nrepl]]  ]
 
-  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target" 
+  :clean-targets ^{:protect false} ["resources/public/js/compiled" "target"
                                     "test/js" ]
-  
+
   :cljsbuild {:builds [{:id "dev"
                         :source-paths ["src/cljs"]
 
