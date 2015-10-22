@@ -16,3 +16,14 @@
  :add-new-thing
  (fn [db _]
    (reaction (:new-thing @db))))
+
+
+(re-frame/register-sub
+ :current-task
+ (fn [db _]
+   (reaction (:current-task @db))))
+
+(re-frame/register-sub
+ :current-task-done
+ (fn [db _]
+   (reaction (:current-task-done @db))))

@@ -17,3 +17,15 @@
  (fn [db _]
    (let [new-thing (not (:new-thing db))]
        (assoc db :new-thing new-thing))))
+
+(re-frame/register-handler
+ :task-for-now
+ (fn [db [_ task]]
+   (let [db (assoc db :current-task-done false)
+         db (assoc db :current-task task)]
+     db)))
+
+(re-frame/register-handler
+ :mark-current-as-done
+ (fn [db _]
+   (assoc db :current-task-done true)))

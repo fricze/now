@@ -1,6 +1,6 @@
 (ns now.views
   (:require [re-frame.core :as re-frame]
-            [reagent.core :as r]))
+            [reagent.core :as r :refer [atom]]))
 
 (enable-console-print!)
 
@@ -10,14 +10,24 @@
    :overflow :hidden})
 
 (def menu-elm-style
-  {:height 70
-   :width 70
+  {:height 35
+   :width 140
+   :line-height "35px"
+   :border-radius 3
    :color :#fff
+   :cursor :pointer
    :background :#333
-   :padding-top 16
+   :padding-top 0
+   :font-size 17
    :float :left
+   :outline :none
+   :border :none
+   :font-family :sans-serif
+   :text-transform :capitalize
+   :font-variant :small-caps
    :padding-left 5
    :padding-right 5
+   :text-align :center
    :margin-right 5})
 
 (defn val-from-e-target [e]
@@ -26,27 +36,48 @@
 ;; --------------------
 (defn do-it-component []
   (let [show (re-frame/subscribe [:add-new-thing])
-        content (r/atom "")]
+        content (atom "")]
     (fn []
       [:div
-       [:h1 "area"]
-       (when @show [:textarea {:name "chuj"
-                               :on-change #(reset! content (val-from-e-target %))
-                               :value @content
-                               :rows 10
-                               :col 40}])])))
+       (when @show [:form
+                    {:on-submit (fn [e]
+                                 (.preventDefault e)
+                                 (re-frame.core/dispatch [:task-for-now @content]))
+                     :style {
+                             :margin-top 20
+                             }}
+                    [:input {:name "chuj"
+                             :autofocus true
+                             :style {
+                                     :height 30
+                                     :outline :none
+                                     :border 0
+                                     :border-bottom "1px solid black"
+                                     :padding-left 4
+                                     :padding-right 4
+                                     }
+                             :on-change #(reset! content (val-from-e-target %))
+                             :value @content
+                             ;; :rows 10
+                             ;; :col 40
+                             }]])])))
 
 (defn now-component []
   (let [name (re-frame/subscribe [:name])
         ]
     (fn []
       [:div
-       [:ul {:style menu-style}
-        [:li {:style menu-elm-style
-              :on-click (fn []
-                          (re-frame/dispatch [:add-new-thing]))}
-         "create it for now!"]
-        [:li {:style menu-elm-style} "check everything!"]]
+       [:div {:style menu-style}
+        [:button {:style menu-elm-style
+             :tabIndex 1
+             :on-click (fn []
+                         (re-frame/dispatch [:add-new-thing]))}
+         "task for now!"]
+        [:button {:style menu-elm-style
+             :tabIndex 1
+             :on-click (fn []
+                         (re-frame/dispatch [:mark-current-as-done]))}
+         "mark as done"]]
        [do-it-component]])))
 
 (defn later-component []
@@ -76,7 +107,11 @@
                        :margin-top "3vh"})
 
 (defn main-panel []
-  (let [active-panel (re-frame/subscribe [:active-panel])]
+  (let [active-panel (re-frame/subscribe [:active-panel])
+        current-task (re-frame/subscribe [:current-task])
+        current-task-done (re-frame/subscribe [:current-task-done])]
+
+    (println @current-task-done)
     (fn []
       [:div
        {:style main-panel-style}
@@ -86,6 +121,15 @@
        [:h2
         {:style title-style}
         "or later " [:span {:style {:color "#990000"}} "?"]]
+
+       [:div
+        {:style {:margin-top 20 :margin-bottom 20}}
+        [:h3 (str "current task! :: ")
+         [:span {:style {:color (if @current-task-done :blue :red)
+                         :border-bottom (if @current-task-done
+                                          "1px solid #333" :none)}}
+          @current-task]]
+        ]
 
        (panels @active-panel)])))
 
@@ -99,7 +143,7 @@
 (mouse-shortcuts)
 
 
-(defn my-memoize [fnc]
+#_(defn my-memoize [fnc]
   (fn [& args] (let [memoized (get args some-map false)]
                  (if memoized
                    memoized
