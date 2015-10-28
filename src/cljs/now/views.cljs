@@ -22,7 +22,7 @@
    :float :left
    :outline :none
    :border :none
-   :font-family :sans-serif
+   :font-family "Arial"
    :text-transform :capitalize
    :font-variant :small-caps
    :padding-left 5
@@ -34,33 +34,58 @@
   (.-value (.-target e)))
 
 ;; --------------------
+(defn do-it-input-base
+  "Input element for form in do it component"
+  [content task-done live-content show-input]
+  [:label
+   [:p
+    {:style {:user-select :none
+             :float :left
+             :margin-top 6
+             :margin-right 5}
+     :on-click (fn []
+                 (re-frame/dispatch [:add-new-thing]))}
+    "now I will"]
+   #_(when (not @task-done) [:p
+                           {:style
+                            {:float :left
+                             :margin-top 6}}
+                           @content])
+   (when (and @show-input @task-done) [:p])
+   [:input {:style {:height 30
+                    :outline :none
+                    :border 0
+                    :border-bottom "1px solid black"
+                    ;; :background :#fff
+                    :font-size 16
+                    :color :#333
+                    :padding-left 4
+                    :padding-right 4}
+            :disabled @task-done
+            :on-change #(reset! live-content (val-from-e-target %))
+            :value @live-content}]
+
+   ])
+
+(def do-it-input do-it-input-base
+  #_(with-meta
+    do-it-input-base
+    {:component-did-mount #(.focus (reagent.core/dom-node %))}))
+
 (defn do-it-component []
   (let [show (re-frame/subscribe [:add-new-thing])
-        content (atom "")]
+        content (atom "")
+        current-task (re-frame/subscribe [:current-task])
+        current-task-done (re-frame/subscribe [:current-task-done])]
     (fn []
       [:div
-       (when @show [:form
-                    {:on-submit (fn [e]
-                                 (.preventDefault e)
-                                 (re-frame.core/dispatch [:task-for-now @content]))
-                     :style {
-                             :margin-top 20
-                             }}
-                    [:input {:name "chuj"
-                             :autofocus true
-                             :style {
-                                     :height 30
-                                     :outline :none
-                                     :border 0
-                                     :border-bottom "1px solid black"
-                                     :padding-left 4
-                                     :padding-right 4
-                                     }
-                             :on-change #(reset! content (val-from-e-target %))
-                             :value @content
-                             ;; :rows 10
-                             ;; :col 40
-                             }]])])))
+       [:form
+        {:on-submit (fn [e]
+                      (.preventDefault e)
+                      (re-frame.core/dispatch [:task-for-now @content])
+                      #_(reset! content ""))
+         :style {:margin-top 20}}
+        [do-it-input current-task current-task-done content show]]])))
 
 (defn now-component []
   (let [name (re-frame/subscribe [:name])
@@ -99,19 +124,16 @@
                   :margin-right 10
                   :padding-top 0 :padding-bottom 0})
 
-(def main-panel-style {:font-family "sans-serif"
+(def main-panel-style {:font-family "Arial"
                        :color :#333
                        :width "70vw"
                        :margin-left :auto
                        :margin-right :auto
                        :margin-top "3vh"})
-
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])
         current-task (re-frame/subscribe [:current-task])
         current-task-done (re-frame/subscribe [:current-task-done])]
-
-    (println @current-task-done)
     (fn []
       [:div
        {:style main-panel-style}
@@ -123,15 +145,15 @@
         "or later " [:span {:style {:color "#990000"}} "?"]]
 
        [:div
-        {:style {:margin-top 20 :margin-bottom 20}}
-        [:h3 (str "current task! :: ")
-         [:span {:style {:color (if @current-task-done :blue :red)
-                         :border-bottom (if @current-task-done
-                                          "1px solid #333" :none)}}
-          @current-task]]
-        ]
-
-       (panels @active-panel)])))
+        (panels @active-panel)]
+       #_[:article
+        [:h1
+         {:style {:color (if @current-task-done :#AAA :#333)
+                  :margin-top 40
+                  :font-size 16
+                  :font-weight 400
+                  :margin-left 64}}
+         @current-task]]])))
 
 (def mouse-shortcuts
   (memoize (fn [] (do (.bind js/Mousetrap "shift+/"
