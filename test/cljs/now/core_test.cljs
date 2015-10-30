@@ -6,3 +6,8 @@
 (deftest fake-test
   (testing "fake description"
     (is (= 1 2))))
+
+(deftest new-test
+  (testing "fake description"
+    (is (= 2 2))))
+

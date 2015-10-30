@@ -1,8 +1,36 @@
 (ns now.views
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame]
-            [reagent.core :as r :refer [atom]]))
+            [reagent.core :as r :refer [atom]]
+            [cljs.core.async :as async]))
 
 (enable-console-print!)
+
+;; (def shots (async/chan))
+
+;; (go-loop [seconds 1]
+;;   (async/<! (async/timeout 300))
+;;   (async/>! shots :shot)
+;;   (print "shoot!")
+;;   (recur (inc seconds)))
+
+;; (go-loop [seconds 1]
+;;   (async/<! shots)
+;;   (print "shot from first place")
+;;   (async/<! (async/timeout 2300))
+;;   (recur (inc seconds)))
+
+;; (go-loop [seconds 1]
+;;   (async/<! shots)
+;;   (print "shot from second place")
+;;   (async/<! (async/timeout 2900))
+;;   (recur (inc seconds)))
+
+;; (go-loop [seconds 1]
+;;   (async/<! shots)
+;;   (print "shot from third place")
+;;   (async/<! (async/timeout 3200))
+;;   (recur (inc seconds)))
 
 (def menu-style
   {:list-style :none
@@ -52,6 +80,7 @@
                              :margin-top 6}}
                            @content])
    (when (and @show-input @task-done) [:p])
+
    [:input {:style {:height 30
                     :outline :none
                     :border 0
@@ -170,3 +199,5 @@
                  (if memoized
                    memoized
                    (apply fnc args)))))
+
+
