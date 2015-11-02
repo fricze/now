@@ -1,6 +1,8 @@
 (ns now.views
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [re-frame.core :as re-frame]
-            [reagent.core :as r :refer [atom]]))
+            [reagent.core :as r :refer [atom]]
+            [cljs.core.async :as async]))
 
 (enable-console-print!)
 
