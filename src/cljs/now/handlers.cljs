@@ -21,8 +21,14 @@
 (re-frame/register-handler
  :task-for-now
  (fn [db [_ task]]
-   (let [db (assoc db :current-task-done false)
-         db (assoc db :current-task task)]
+   (let [id (:task-id db)
+         tasks (:tasks db)
+         tasks (conj tasks {:content task
+                            :id id})
+         db (assoc db :tasks tasks)
+         db (assoc db :task-id (inc id))]
+
+     (println db)
      db)))
 
 (re-frame/register-handler

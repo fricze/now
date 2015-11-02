@@ -7,4 +7,6 @@
 
    :new-thing false
 
-   :doings []})
+   :task-id 0
+
+   :tasks []})

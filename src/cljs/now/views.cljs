@@ -4,6 +4,12 @@
 
 (enable-console-print!)
 
+(defn box
+  ([size]
+   [:div {:style {:width size :height size}}])
+  ([width height]
+   [:div {:style {:width width :height height}}]))
+
 (def menu-style
   {:list-style :none
    :margin-top 30
@@ -34,49 +40,63 @@
   (.-value (.-target e)))
 
 ;; --------------------
-(defn do-it-input-base
+
+(defn new-task-input-style
+  [active]
+  {:height 30
+   :outline :none
+   :border 0
+   :border-bottom "1px solid black" #_(if active
+                    "none"
+                    "1px solid black")
+   :background :#fff
+   :font-size 20
+   :color :#333
+   :padding-left 4
+   :padding-right 4})
+
+(defn new-task-input
+  [live-content content]
+  (fn []
+    [:input {:style (new-task-input-style (not (empty? @content)))
+             :on-change #(reset! live-content (val-from-e-target %))
+             :value @live-content}]))
+
+(def new-task-input+focus
+  (with-meta
+    new-task-input
+    {:component-did-mount #(.focus (reagent.core/dom-node %))}))
+
+(defn new-task-input+label
   "Input element for form in do it component"
-  [content task-done live-content show-input]
+  [content task-done live-content]
   [:label
    [:p
     {:style {:user-select :none
-             :float :left
-             :margin-top 6
-             :margin-right 5}
-     :on-click (fn []
-                 (re-frame/dispatch [:add-new-thing]))}
-    "now I will"]
-   #_(when (not @task-done) [:p
-                           {:style
-                            {:float :left
-                             :margin-top 6}}
-                           @content])
-   (when (and @show-input @task-done) [:p])
-   [:input {:style {:height 30
-                    :outline :none
-                    :border 0
-                    :border-bottom "1px solid black"
-                    ;; :background :#fff
-                    :font-size 16
-                    :color :#333
-                    :padding-left 4
-                    :padding-right 4}
-            :disabled @task-done
-            :on-change #(reset! live-content (val-from-e-target %))
-            :value @live-content}]
+             :margin-top 4
+             :margin-right 5
+             :font-size 20}
 
-   ])
+     :on-click #(re-frame/dispatch [:add-new-thing])}
+    "What do you want to do?"]
 
-(def do-it-input do-it-input-base
-  #_(with-meta
-    do-it-input-base
-    {:component-did-mount #(.focus (reagent.core/dom-node %))}))
+   [new-task-input+focus live-content content]
+
+   (when @task-done
+     [:p
+      {:style {:float :right
+               :position :relative
+               :left -500}}
+      "(y)"])])
+
+(def long-box (partial box "100%"))
 
 (defn do-it-component []
   (let [show (re-frame/subscribe [:add-new-thing])
         content (atom "")
         current-task (re-frame/subscribe [:current-task])
         current-task-done (re-frame/subscribe [:current-task-done])]
+
     (fn []
       [:div
        [:form
@@ -85,23 +105,45 @@
                       (re-frame.core/dispatch [:task-for-now @content])
                       #_(reset! content ""))
          :style {:margin-top 20}}
-        [do-it-input current-task current-task-done content show]]])))
+
+        [new-task-input+label
+         current-task
+         current-task-done
+         content]
+
+        (long-box 40)
+
+        [:h1 "current task: "
+         (when-let [current-task @current-task]
+           [:span (:content current-task)])]
+
+        (long-box 80)
+
+        [:h1 "todo before: "
+         (long-box 20)
+         [:input {:type :text
+                  :placeholder "now"}]
+         (long-box 20)
+         [:span "list of todos"]
+         (long-box 20)
+         ]
+
+        (long-box 20)
+
+        ]])))
 
 (defn now-component []
-  (let [name (re-frame/subscribe [:name])
-        ]
+  (let [name (re-frame/subscribe [:name])]
     (fn []
       [:div
-       [:div {:style menu-style}
+       #_[:div {:style menu-style}
         [:button {:style menu-elm-style
-             :tabIndex 1
-             :on-click (fn []
-                         (re-frame/dispatch [:add-new-thing]))}
+                  :tabIndex 1
+                  :on-click #(re-frame/dispatch [:add-new-thing])}
          "task for now!"]
         [:button {:style menu-elm-style
-             :tabIndex 1
-             :on-click (fn []
-                         (re-frame/dispatch [:mark-current-as-done]))}
+                  :tabIndex 1
+                  :on-click #(re-frame/dispatch [:mark-current-as-done])}
          "mark as done"]]
        [do-it-component]])))
 
@@ -130,6 +172,7 @@
                        :margin-left :auto
                        :margin-right :auto
                        :margin-top "3vh"})
+
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [:active-panel])
         current-task (re-frame/subscribe [:current-task])
@@ -140,20 +183,12 @@
        [:h1
         {:style title-style}
         "do it now " [:span {:style {:color "#990000"}} "!"]]
-       [:h2
+       #_[:h2
         {:style title-style}
         "or later " [:span {:style {:color "#990000"}} "?"]]
 
        [:div
-        (panels @active-panel)]
-       #_[:article
-        [:h1
-         {:style {:color (if @current-task-done :#AAA :#333)
-                  :margin-top 40
-                  :font-size 16
-                  :font-weight 400
-                  :margin-left 64}}
-         @current-task]]])))
+        (panels @active-panel)]])))
 
 (def mouse-shortcuts
   (memoize (fn [] (do (.bind js/Mousetrap "shift+/"
@@ -163,10 +198,3 @@
                              #(re-frame/dispatch [:set-active-panel :now]))))))
 
 (mouse-shortcuts)
-
-
-#_(defn my-memoize [fnc]
-  (fn [& args] (let [memoized (get args some-map false)]
-                 (if memoized
-                   memoized
-                   (apply fnc args)))))

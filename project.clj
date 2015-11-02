@@ -3,6 +3,7 @@
                  [org.clojure/clojurescript "0.0-3211"]
                  [reagent "0.5.0"]
                  [re-frame "0.4.1"]
+                 [cljsjs/react-dom "0.14.0-0"]
                  [secretary "1.2.3"]]
 
   :source-paths ["src/clj"]

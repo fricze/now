@@ -21,7 +21,7 @@
 (re-frame/register-sub
  :current-task
  (fn [db _]
-   (reaction (:current-task @db))))
+   (reaction (last (:tasks @db)))))
 
 (re-frame/register-sub
  :current-task-done
